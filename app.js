@@ -1,0 +1,67 @@
+const express = require("express");
+const https = require("https");
+
+const app = express();
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
+
+app.get("/", function (req, res) {
+    res.sendFile(__dirname + "/signup.html");
+  });
+
+app.post("/", function (req, res) {
+  let firstName = req.body.firstname;
+  let lastName = req.body.lastname;
+  let email = req.body.email;
+
+  const data = {
+    members: [
+      {
+        email_address: email,
+        status: "subscribed",
+        merge_fields: {
+          FNAME: firstName,
+          LNAME: lastName,
+        },
+      },
+    ],
+    update_existing: false,
+  };
+
+  const jsonData = JSON.stringify(data);
+
+  //   api end-point
+  const url = "https://us6.api.mailchimp.com/3.0/lists/a808a8798f";
+
+  // api key
+  const options = {
+    method: "POST",
+    auth: "anup:55f8758fbe2ffc897d028d2b6cccf678-us6",
+  };
+
+  const request = https.request(url, options, function (response) {
+
+    if (response.statusCode === 200) {
+      res.sendFile(__dirname + "/success.html");
+    } else {
+      res.sendFile(__dirname + "/failure.html");
+    }
+
+    response.on("data", function (data) {
+      console.log(JSON.parse(data));
+    });
+
+  });
+
+  request.write(jsonData);
+  request.end();
+});
+
+app.listen(3000, function () {
+  console.log("Server is running on port 3000");
+});
+
+// 55f8758fbe2ffc897d028d2b6cccf678-us6
+
+// a808a8798f
